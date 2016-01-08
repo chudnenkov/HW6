@@ -5,20 +5,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ExpandableListView;
+import android.widget.SimpleExpandableListAdapter;
 
 import org.xmlpull.v1.XmlPullParser;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    ArrayList<String> countries  = new ArrayList<String>();
+    List<String> countries  = new ArrayList<String>();
     ArrayList<String> cities  = new ArrayList<String>();
 
-    Map<String, ArrayList<String>> countriesCities = new LinkedHashMap<String, ArrayList<String>>();
+    Map<String, List<String>> countriesCities = new LinkedHashMap<String, List<String>>();
 
     String containerCountry;
 
@@ -57,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             if ( (parser.getEventType()==XmlPullParser.END_TAG) && (parser.getName().equals("country")) ){
                 countriesCities.put(containerCountry, cities);
                 cities  = new ArrayList<String>();
-              //  cities.clear();
+
             }
 
             parser.next();
@@ -67,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         CustomExpandableListAdapter customExpandableListAdapter = new CustomExpandableListAdapter(this, countries , countriesCities);
+          //   ExpandableListAdapter  customExpandableListAdapter =  new ExpandableListAdapter(this, countries , countriesCities);
         expandableListView.setAdapter(customExpandableListAdapter);
     }
 
