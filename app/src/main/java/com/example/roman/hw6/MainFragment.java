@@ -1,6 +1,5 @@
 package com.example.roman.hw6;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -8,7 +7,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +28,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by roman on 11.01.2016.
@@ -42,7 +39,6 @@ public class MainFragment extends Fragment {
     Map<String, String> CityId = new HashMap<String, String>();
     Map<String, List<String>> countriesCities = new LinkedHashMap<String, List<String>>();
     String containerCountry;
-    String content;
 
     String weather_type;
     String temperature;
@@ -55,7 +51,6 @@ public class MainFragment extends Fragment {
     ExpandableListView expandableListView;
     View view;
 
-
     @Override
     public View onCreateView(LayoutInflater inflater,  ViewGroup container, Bundle savedInstanceState){
 
@@ -64,9 +59,6 @@ public class MainFragment extends Fragment {
         expandableListView = (ExpandableListView) view.findViewById(R.id.expandableListView);
         customExpandableListAdapter = new CustomExpandableListAdapter(getActivity(), countries , countriesCities);
         expandableListView.setAdapter(customExpandableListAdapter);
-
-
-
         expandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
@@ -74,60 +66,31 @@ public class MainFragment extends Fragment {
                 pickedCity = countriesCities.get(countries.get(groupPosition)).get(childPosition);
                 pickedId = CityId.get(pickedCity);
 
-                DownloadCityForecast downloadCityForecast = new DownloadCityForecast();
+                DownloadXML downloadXML = new DownloadXML();
                 ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 
                 if (networkInfo != null && networkInfo.isConnected()) {
-
-                    downloadCityForecast.execute("http://export.yandex.ru/weather-ng/forecasts/" + pickedId + ".xml");
-                 /*   try {
-                        content = downloadCityForecast.get();
-                        try {
-                            parseForecastXml(content);
-                        } catch (IOException e) {
-                        } catch (XmlPullParserException e) {
-                        }
-
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }*/
-
-               /*     cityWeatherTemp.clear();
-                    cityWeatherTemp.add(pickedCity);
-                    cityWeatherTemp.add(weather_type);
-                    cityWeatherTemp.add(temperature);
-                    SecondFragment secondFragment = new SecondFragment();
-                    //FragmentManager fragmentManager = getFragmentManager();
-                    MainActivity.fragmentManager.beginTransaction().replace(R.id.container, secondFragment).commit();
-                    MainActivity.fragmentManager.beginTransaction().replace(R.id.container, secondFragment).addToBackStack(null).commit();*/
-
-                } else {
+                    downloadXML.execute("http://export.yandex.ru/weather-ng/forecasts/" + pickedId + ".xml");
+                 } else {
                     Toast.makeText(getActivity(), "No network connection available.", Toast.LENGTH_SHORT).show();
                 }
                 return true;
             }
         });
 
-        ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        String xml;
-        if (networkInfo != null && networkInfo.isConnected()) {
-
-            DownloadCityForecast downloadCityForecast = new DownloadCityForecast();
-            downloadCityForecast.execute("https://pogoda.yandex.ru/static/cities.xml");
-          /*  try {
-                xml = downloadCityForecast.get();
-                parseCitiesXml(xml);
-                customExpandableListAdapter.notifyDataSetChanged();
-            } catch (InterruptedException e) {}
-            catch (ExecutionException e) {}*/
-        } else {
-            Toast.makeText(getActivity(), "No network connection available.", Toast.LENGTH_SHORT).show();
+        if (countries.size() == 0 && countriesCities.size()==0 ){
+            ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            String xml;
+            if (networkInfo != null && networkInfo.isConnected()) {
+                DownloadXML downloadXML = new DownloadXML();
+                downloadXML.execute("https://pogoda.yandex.ru/static/cities.xml");
+            } else {
+                Toast.makeText(getActivity(), "No network connection available.", Toast.LENGTH_SHORT).show();
+            }
         }
+
         return view;
     }
 
@@ -158,12 +121,10 @@ public class MainFragment extends Fragment {
 
             }
 
-
     }
 
     public  void parseCitiesXml(String content){
         try{
-           // XmlPullParser parser = getResources().getXml(R.xml.cities);
 
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             XmlPullParser parser = factory.newPullParser();
@@ -196,11 +157,10 @@ public class MainFragment extends Fragment {
         }catch (Exception e){}
     }
 
-    public class DownloadCityForecast extends AsyncTask<String, Integer, String> {
+    public class DownloadXML extends AsyncTask<String, Integer, String> {
 
         public ProgressDialog progressDialog;
         String Url;
-        //public  Activity context   ;
 
         @Override
         protected void onPreExecute(){
@@ -215,7 +175,7 @@ public class MainFragment extends Fragment {
             String content = null;
             Url= url[0];
             try{
-                content = downloadForecast(url[0]);
+                content = downloadData(url[0]);
             }catch (IOException e){}
 
             return content;
@@ -230,7 +190,7 @@ public class MainFragment extends Fragment {
                 customExpandableListAdapter.notifyDataSetChanged();
             }
             else {
-                //parseForecastXml(result);
+
                 try {
                      parseForecastXml(result);
                      progressDialog.cancel();
@@ -248,10 +208,8 @@ public class MainFragment extends Fragment {
         }
 
 
-        public String downloadForecast (String urlCity) throws IOException {
-
+        public String downloadData(String urlCity) throws IOException {
             InputStream is = null;
-
             try {
                 URL url = new URL(urlCity);
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -269,7 +227,6 @@ public class MainFragment extends Fragment {
                     is.close();
                 }
             }
-
         }
     }
 }
