@@ -1,77 +1,66 @@
 package com.example.roman.hw6;
 
+import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ExpandableListView;
-import android.widget.SimpleExpandableListAdapter;
-
-import org.xmlpull.v1.XmlPullParser;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    List<String> countries  = new ArrayList<String>();
+/*   List<String> countries  = new ArrayList<String>();
     ArrayList<String> cities  = new ArrayList<String>();
-
+    ArrayList<String> CityId = new ArrayList<String>();
     Map<String, List<String>> countriesCities = new LinkedHashMap<String, List<String>>();
+    String containerCountry; */
 
-    String containerCountry;
-
-
-
+    public static  FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
- //       countriesCities = new LinkedHashMap<String, ArrayList<String>>();
+     /*   ExpandableListView expandableListView = (ExpandableListView) findViewById(R.CityId.expandableListView);
+        parseCitiesXml();
+        CustomExpandableListAdapter customExpandableListAdapter = new CustomExpandableListAdapter(this, countries , countriesCities);
+        expandableListView.setAdapter(customExpandableListAdapter); */
 
-        ExpandableListView expandableListView = (ExpandableListView) findViewById(R.id.expandableListView);
+        MainFragment fragment = new MainFragment();
+        SecondFragment secondFragment =  new SecondFragment();
+        fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
+       // fragmentManager.beginTransaction().replace(R.id.container, secondFragment).addToBackStack(null).commit();
+    }
 
+ /*  public  void parseCitiesXml(){
         try{
-        XmlPullParser parser = getResources().getXml(R.xml.cities);
-        while (parser.getEventType()!= XmlPullParser.END_DOCUMENT){
+            XmlPullParser parser = getResources().getXml(R.xml.cities);
+            while (parser.getEventType()!= XmlPullParser.END_DOCUMENT){
 
-            if (parser.getEventType()==XmlPullParser.START_TAG){
-                String name = parser.getName();
-                if (name.equals("country")){
-                    countries.add(parser.getAttributeValue(0));
-                    containerCountry = parser.getAttributeValue(0);
-
+                if (parser.getEventType()==XmlPullParser.START_TAG){
+                    String name = parser.getName();
+                    if (name.equals("country")){
+                        countries.add(parser.getAttributeValue(0));
+                        containerCountry = parser.getAttributeValue(0);
+                    }
+                    if (name.equals("city")){
+                        CityId.add(parser.getAttributeValue(0));
+                        parser.next();
+                        if (parser.getEventType() == XmlPullParser.TEXT){
+                            cities.add(parser.getText());
+                        }
+                    }
                 }
-                if (name.equals("city")){
-                    parser.next();
-                   if (parser.getEventType() == XmlPullParser.TEXT){
-                       cities.add(parser.getText());
-                   }
-
+                if ( (parser.getEventType()==XmlPullParser.END_TAG) && (parser.getName().equals("country")) ){
+                    countriesCities.put(containerCountry, cities);
+                    cities  = new ArrayList<String>();
                 }
+                parser.next();
             }
-
-            if ( (parser.getEventType()==XmlPullParser.END_TAG) && (parser.getName().equals("country")) ){
-                countriesCities.put(containerCountry, cities);
-                cities  = new ArrayList<String>();
-
-            }
-
-            parser.next();
-        }
 
         }catch (Exception e){}
-
-
-        CustomExpandableListAdapter customExpandableListAdapter = new CustomExpandableListAdapter(this, countries , countriesCities);
-          //   ExpandableListAdapter  customExpandableListAdapter =  new ExpandableListAdapter(this, countries , countriesCities);
-        expandableListView.setAdapter(customExpandableListAdapter);
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

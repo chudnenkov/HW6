@@ -9,6 +9,12 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListAdapter;
 import android.widget.TextView;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +52,7 @@ public  class CustomExpandableListAdapter extends BaseExpandableListAdapter  {
         }
         TextView textView = (TextView) convertView.findViewById(R.id.textView2);
         textView.setText(city);
+
         return convertView;
     }
 
@@ -85,5 +92,8 @@ public  class CustomExpandableListAdapter extends BaseExpandableListAdapter  {
     public boolean isChildSelectable(int groupPosition, int childPosition){
         return true;
     }
+
+
+
 
 }
