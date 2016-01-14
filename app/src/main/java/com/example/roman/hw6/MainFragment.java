@@ -55,7 +55,6 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,  ViewGroup container, Bundle savedInstanceState){
 
         view  = inflater.inflate(R.layout.fragment_main, container, false);
-
         expandableListView = (ExpandableListView) view.findViewById(R.id.expandableListView);
         customExpandableListAdapter = new CustomExpandableListAdapter(getActivity(), countries , countriesCities);
         expandableListView.setAdapter(customExpandableListAdapter);
@@ -82,7 +81,6 @@ public class MainFragment extends Fragment {
         if (countries.size() == 0 && countriesCities.size()==0 ){
             ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-            String xml;
             if (networkInfo != null && networkInfo.isConnected()) {
                 DownloadXML downloadXML = new DownloadXML();
                 downloadXML.execute("https://pogoda.yandex.ru/static/cities.xml");
@@ -116,11 +114,8 @@ public class MainFragment extends Fragment {
                         break;
                     }
                 }
-
                 xmlPullParser.next();
-
             }
-
     }
 
     public  void parseCitiesXml(String content){
@@ -214,9 +209,7 @@ public class MainFragment extends Fragment {
                 URL url = new URL(urlCity);
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setConnectTimeout(10000);
-                //  httpURLConnection.setRequestMethod("GET");  ??
                 httpURLConnection.connect();
-                int response = httpURLConnection.getResponseCode();
                 is = httpURLConnection.getInputStream();
                 String content = IOUtils.toString(is, "UTF-8");
 

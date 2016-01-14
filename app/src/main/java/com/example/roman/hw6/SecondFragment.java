@@ -18,7 +18,6 @@ public class SecondFragment extends Fragment {
     @Override
     public View onCreateView (LayoutInflater inflater,  ViewGroup container, Bundle savedInstanceState){
         View view = inflater.inflate(R.layout.fragment_second, container, false);
-
         ListView listView = (ListView) view.findViewById(R.id.listView);
         listView.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, MainFragment.cityWeatherTemp));
         return  view;
