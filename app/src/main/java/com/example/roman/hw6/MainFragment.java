@@ -3,14 +3,19 @@ package com.example.roman.hw6;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.commons.io.IOUtils;
@@ -28,20 +33,28 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 /**
  * Created by roman on 11.01.2016.
  */
 public class MainFragment extends Fragment {
 
+    public DownloadXML downloadXMLCity;
     List<String> countries  = new ArrayList<String>();
     ArrayList<String> cities  = new ArrayList<String>();
     Map<String, String> CityId = new HashMap<String, String>();
     Map<String, List<String>> countriesCities = new LinkedHashMap<String, List<String>>();
     String containerCountry;
 
+    DBHelper dbHelper;
+    SQLiteDatabase sqLiteDatabase;
+    String tenValues = "";
+
     String weather_type;
     String temperature;
+
+
 
     String pickedCity;
     String pickedId;
@@ -50,14 +63,71 @@ public class MainFragment extends Fragment {
     CustomExpandableListAdapter customExpandableListAdapter;
     ExpandableListView expandableListView;
     View view;
+    TextView city;
+    String selectedCity = "";
+
+    SharedPreferences mySharedPreferences;
+
+
+    public static final String APP_PREFERENCES = "mysettings";
+    public static final String APP_PREFERENCES_CITY = "city";
+    public static final String APP_PREFERENCES_ID = "id";
+
+
+    public void updateTextValue(CharSequence newText) {
+       // city.setText(newText);
+        selectedCity = newText.toString();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,  ViewGroup container, Bundle savedInstanceState){
 
+
+
         view  = inflater.inflate(R.layout.fragment_main, container, false);
+        mySharedPreferences = getActivity().getSharedPreferences(APP_PREFERENCES, Context.MODE_APPEND);
+
+        dbHelper = new DBHelper(getActivity());
+        sqLiteDatabase = dbHelper.getWritableDatabase();
+        Cursor c =sqLiteDatabase.rawQuery("select * from info_weather  where city  = ? order by 1 desc  LIMIT 10", new String[]{mySharedPreferences.getString(APP_PREFERENCES_CITY, "")});
+        if (c.moveToFirst()) {
+            int emailColIndex = c.getColumnIndex("weather");
+            do {
+                // получаем значени€ по номерам столбцов и пишем все в лог
+                Log.e("LOG_TAG",
+                        ", weather = " + c.getString(emailColIndex));
+                tenValues += "  " + (c.getString(emailColIndex)) + "C";
+
+                // переход на следующую строку
+                // а если следующей нет (текуща€ - последн€€), то false - выходим из цикла
+            } while (c.moveToNext());
+        }
+
+        city = (TextView) view.findViewById(R.id.city);
+        city.setText(selectedCity + tenValues);
+
+
+
+
+        SharedPreferences.Editor editor = mySharedPreferences.edit();
+        if (selectedCity.length()!=0) {
+
+            editor.putString(APP_PREFERENCES_CITY, selectedCity);
+            editor.putString(APP_PREFERENCES_ID, pickedId);
+            editor.apply();
+        }
+
+        if(mySharedPreferences.contains(APP_PREFERENCES_CITY)) {
+            city.setText(mySharedPreferences.getString(APP_PREFERENCES_CITY, "") + " " +  tenValues);
+        }
+
+
+
+
         expandableListView = (ExpandableListView) view.findViewById(R.id.expandableListView);
         customExpandableListAdapter = new CustomExpandableListAdapter(getActivity(), countries , countriesCities);
         expandableListView.setAdapter(customExpandableListAdapter);
+
         expandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
@@ -65,12 +135,12 @@ public class MainFragment extends Fragment {
                 pickedCity = countriesCities.get(countries.get(groupPosition)).get(childPosition);
                 pickedId = CityId.get(pickedCity);
 
-                DownloadXML downloadXML = new DownloadXML();
+                downloadXMLCity = new DownloadXML();
                 ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 
                 if (networkInfo != null && networkInfo.isConnected()) {
-                    downloadXML.execute("http://export.yandex.ru/weather-ng/forecasts/" + pickedId + ".xml");
+                    downloadXMLCity.execute("http://export.yandex.ru/weather-ng/forecasts/" + pickedId + ".xml");
                  } else {
                     Toast.makeText(getActivity(), "No network connection available.", Toast.LENGTH_SHORT).show();
                 }
@@ -92,7 +162,11 @@ public class MainFragment extends Fragment {
         return view;
     }
 
-    public void parseForecastXml(String content) throws XmlPullParserException, IOException {
+    public String getPickedCity() {
+        return pickedCity;
+    }
+
+    public   void parseForecastXml(String content) throws XmlPullParserException, IOException {
 
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             XmlPullParser xmlPullParser = factory.newPullParser();
@@ -152,7 +226,7 @@ public class MainFragment extends Fragment {
         }catch (Exception e){}
     }
 
-    public class DownloadXML extends AsyncTask<String, Integer, String> {
+    public  class DownloadXML extends AsyncTask<String, Integer, String> {
 
         public ProgressDialog progressDialog;
         String Url;
